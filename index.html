@@ -1,0 +1,1078 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Hockey Equipment">
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>Hockey Equipment Manager</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+                'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+                sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            background-color: #f5f5f5;
+            -webkit-tap-highlight-color: transparent; /* Remove tap highlight on mobile */
+        }
+
+        /* Prevent overscroll on mobile */
+        html, body {
+            overscroll-behavior: contain;
+            height: 100%;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+        }
+
+        header {
+            background-color: #2c3e50;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        @media (max-width: 768px) {
+            header {
+                padding: 15px;
+            }
+
+            h1 {
+                font-size: 1.8em;
+            }
+
+            header p {
+                font-size: 14px;
+                margin: 0;
+            }
+        }
+
+        .mobile-instructions {
+            background-color: rgba(255,255,255,0.1);
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 10px;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+
+        .mobile-instructions a {
+            color: #3498db;
+            text-decoration: underline;
+        }
+
+        .mobile-instructions {
+            background-color: rgba(255,255,255,0.1);
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 10px;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+
+        .mobile-instructions a {
+            color: #3498db;
+            text-decoration: underline;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .panel {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .panel h2 {
+            margin-bottom: 15px;
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+
+        .player-list {
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .player-item {
+            display: flex;
+            align-items: center;
+            padding: 15px; /* Increased touch target */
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            min-height: 60px; /* Larger touch area */
+        }
+
+        @media (max-width: 768px) {
+            .player-item {
+                padding: 18px;
+                min-height: 70px;
+            }
+
+            .player-number {
+                font-size: 16px;
+                min-width: 45px;
+            }
+
+            .player-name {
+                font-size: 16px;
+            }
+
+            .player-position {
+                font-size: 14px;
+                display: none; /* Hide position on mobile for space */
+            }
+        }
+
+        .player-item:hover {
+            background-color: #f8f9fa;
+        }
+
+        .player-item.selected {
+            background-color: #e3f2fd;
+        }
+
+        .player-checkbox {
+            margin-right: 15px;
+            width: 24px; /* Larger checkbox */
+            height: 24px;
+            cursor: pointer;
+            min-width: 24px;
+        }
+
+        .player-number {
+            font-weight: bold;
+            color: #3498db;
+            margin-right: 15px;
+            min-width: 40px;
+        }
+
+        .player-name {
+            flex-grow: 1;
+        }
+
+        .player-position {
+            color: #7f8c8d;
+            font-size: 0.9em;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: #2c3e50;
+        }
+
+        input[type="text"],
+        input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+
+        @media (max-width: 768px) {
+            input[type="text"],
+            input[type="number"] {
+                font-size: 16px; /* Prevent zoom on iOS */
+                padding: 12px;
+            }
+        }
+
+        input[type="text"]:focus,
+        input[type="number"]:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+
+        button {
+            background-color: #3498db;
+            color: white;
+            padding: 12px 24px; /* Larger touch targets */
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+            transition: background-color 0.2s;
+            min-height: 48px; /* iOS touch target minimum */
+        }
+
+        button:hover {
+            background-color: #2980b9;
+        }
+
+        button.primary {
+            background-color: #27ae60;
+        }
+
+        button.primary:hover {
+            background-color: #229954;
+        }
+
+        button.danger {
+            background-color: #e74c3c;
+        }
+
+        button.danger:hover {
+            background-color: #c0392b;
+        }
+
+        button:disabled {
+            background-color: #bdc3c7;
+            cursor: not-allowed;
+        }
+
+        .button-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .button-group {
+                gap: 8px;
+            }
+
+            .button-group button {
+                flex: 1;
+                min-width: 120px;
+                font-size: 14px;
+                padding: 10px 16px;
+            }
+        }
+
+        .selected-count {
+            background-color: #3498db;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .equipment-list {
+            background: #f8f9fa;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 15px;
+            white-space: pre-line;
+            font-family: 'Courier New', monospace;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        @media (max-width: 768px) {
+            .equipment-list {
+                font-size: 14px;
+                padding: 12px;
+                max-height: 300px;
+            }
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+
+        .modal.show {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+        }
+
+        @media (max-width: 768px) {
+            .modal-content {
+                padding: 20px;
+                width: 95%;
+                max-width: none;
+                margin: 10px;
+            }
+
+            .modal-header h3 {
+                font-size: 18px;
+            }
+        }
+
+        .modal-header {
+            margin-bottom: 20px;
+        }
+
+        .modal-header h3 {
+            color: #2c3e50;
+        }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .error {
+            color: #e74c3c;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+
+        .success-message {
+            background-color: #d4edda;
+            color: #155724;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .paste-section {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+
+        .paste-textarea {
+            width: 100%;
+            min-height: 120px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            resize: vertical;
+        }
+
+        @media (max-width: 768px) {
+            .paste-textarea {
+                font-size: 16px; /* Prevent zoom on iOS */
+                min-height: 150px;
+            }
+        }
+
+        .paste-textarea:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+
+        .parsed-info {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .match-found {
+            color: #27ae60;
+        }
+
+        .no-match {
+            color: #e74c3c;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        function HockeyEquipmentManager() {
+            const [players, setPlayers] = useState([]);
+            const [showAddModal, setShowAddModal] = useState(false);
+            const [showEditModal, setShowEditModal] = useState(false);
+            const [editingPlayer, setEditingPlayer] = useState(null);
+            const [formData, setFormData] = useState({
+                name: '',
+                number: '',
+                position: 'Forward'
+            });
+            const [errors, setErrors] = useState({});
+            const [successMessage, setSuccessMessage] = useState('');
+            const [equipmentList, setEquipmentList] = useState('');
+            const [pasteText, setPasteText] = useState('');
+            const [parsedResults, setParsedResults] = useState([]);
+            const [pasteMode, setPasteMode] = useState('select'); // 'select' or 'add'
+
+            // Load default players on mount
+            useEffect(() => {
+                const savedPlayers = localStorage.getItem('hockeyPlayers');
+                if (savedPlayers) {
+                    setPlayers(JSON.parse(savedPlayers));
+                } else {
+                    // Start with empty roster
+                    setPlayers([]);
+                }
+            }, []);
+
+            // Save players to localStorage whenever they change
+            useEffect(() => {
+                localStorage.setItem('hockeyPlayers', JSON.stringify(players));
+            }, [players]);
+
+            const validateForm = () => {
+                const newErrors = {};
+
+                if (!formData.name.trim()) {
+                    newErrors.name = 'Player name is required';
+                }
+
+                if (!formData.number || isNaN(formData.number)) {
+                    newErrors.number = 'Valid jersey number is required';
+                } else {
+                    const num = parseInt(formData.number);
+                    if (num < 0 || num > 99) {
+                        newErrors.number = 'Jersey number must be between 0 and 99';
+                    }
+
+                    // Check for duplicate numbers (excluding current player if editing)
+                    const duplicate = players.find(p =>
+                        p.number === num && (!editingPlayer || p.id !== editingPlayer.id)
+                    );
+                    if (duplicate) {
+                        newErrors.number = 'Player with this number already exists';
+                    }
+                }
+
+                setErrors(newErrors);
+                return Object.keys(newErrors).length === 0;
+            };
+
+            const handleAddPlayer = () => {
+                if (validateForm()) {
+                    const newPlayer = {
+                        id: Date.now(),
+                        name: formData.name.trim(),
+                        number: parseInt(formData.number),
+                        position: formData.position,
+                        selected: false
+                    };
+
+                    setPlayers([...players, newPlayer]);
+                    setFormData({ name: '', number: '', position: 'Forward' });
+                    setErrors({});
+                    setShowAddModal(false);
+                    setSuccessMessage('Player added successfully!');
+                    setTimeout(() => setSuccessMessage(''), 3000);
+                }
+            };
+
+            const handleEditPlayer = () => {
+                if (validateForm() && editingPlayer) {
+                    setPlayers(players.map(p =>
+                        p.id === editingPlayer.id
+                            ? {
+                                ...p,
+                                name: formData.name.trim(),
+                                number: parseInt(formData.number),
+                                position: formData.position,
+                                selected: false  // Deselect player after edit
+                            }
+                            : p
+                    ));
+                    setFormData({ name: '', number: '', position: 'Forward' });
+                    setErrors({});
+                    setShowEditModal(false);
+                    setEditingPlayer(null);
+                    setSuccessMessage('Player updated successfully!');
+                    setTimeout(() => setSuccessMessage(''), 3000);
+                }
+            };
+
+            const handleDeletePlayer = () => {
+                const selectedPlayers = players.filter(p => p.selected);
+
+                if (selectedPlayers.length === 0) {
+                    alert('Please select players to delete');
+                    return;
+                }
+
+                if (confirm(`Delete ${selectedPlayers.length} player(s)?`)) {
+                    setPlayers(players.filter(p => !p.selected));
+                    setSuccessMessage('Players deleted successfully!');
+                    setTimeout(() => setSuccessMessage(''), 3000);
+                }
+            };
+
+            const togglePlayerSelection = (playerId) => {
+                setPlayers(players.map(p =>
+                    p.id === playerId ? { ...p, selected: !p.selected } : p
+                ));
+            };
+
+            const openEditModal = () => {
+                const selectedPlayers = players.filter(p => p.selected);
+
+                if (selectedPlayers.length !== 1) {
+                    alert('Please select exactly one player to edit');
+                    return;
+                }
+
+                const player = selectedPlayers[0];
+                setEditingPlayer(player);
+                setFormData({
+                    name: player.name,
+                    number: player.toString(),
+                    position: player.position
+                });
+                setShowEditModal(true);
+            };
+
+            const generateEquipmentList = () => {
+                const selectedPlayers = players.filter(p => p.selected);
+
+                if (selectedPlayers.length === 0) {
+                    alert('Please select players for the game');
+                    return;
+                }
+
+                const sortedPlayers = selectedPlayers.sort((a, b) => a.number - b.number);
+
+                let list = 'EQUIPMENT LIST FOR GAME\n';
+                list += '='.repeat(40) + '\n\n';
+
+                list += 'EQUIPMENT NEEDED:\n';
+                list += '-'.repeat(20) + '\n';
+                sortedPlayers.forEach(p => {
+                    list += `#${p.number.toString().padStart(2)} - ${p.name}\n`;
+                });
+
+                list += '\n';
+
+                list += 'SUMMARY:\n';
+                list += '-'.repeat(20) + '\n';
+                list += `Total Players: ${selectedPlayers.length}\n`;
+                list += `Jerseys & Water Bottles Needed: ${selectedPlayers.length}\n`;
+
+                setEquipmentList(list);
+            };
+
+            const clearSelection = () => {
+                setPlayers(players.map(p => ({ ...p, selected: false })));
+            };
+
+            const clearAllData = () => {
+                if (confirm('Are you sure you want to clear all players? This cannot be undone.')) {
+                    setPlayers([]);
+                    setSuccessMessage('All player data has been cleared!');
+                    setTimeout(() => setSuccessMessage(''), 3000);
+                }
+            };
+
+            const selectAll = () => {
+                setPlayers(players.map(p => ({ ...p, selected: true })));
+            };
+
+            const parseAndSelectPlayers = () => {
+                const lines = pasteText.split('\n');
+                const foundPlayers = [];
+                const notFound = [];
+                const newPlayers = [];
+
+                if (pasteMode === 'select') {
+                    // Clear current selection first
+                    setPlayers(players.map(p => ({ ...p, selected: false })));
+                }
+
+                lines.forEach(line => {
+                    const trimmedLine = line.trim();
+                    if (!trimmedLine) return;
+
+                    // Try different patterns to extract player info
+                    let number = null;
+                    let name = null;
+                    let position = 'Forward'; // default position
+
+                    // Pattern 1: #number name position
+                    const match1 = trimmedLine.match(/^#?(\d{1,2})\s+(.+?)\s+(.+)$/);
+                    if (match1) {
+                        number = parseInt(match1[1]);
+                        name = match1[2].trim();
+                        position = match1[3].trim();
+                    }
+
+                    // Pattern 2: #number name
+                    if (!number) {
+                        const match2 = trimmedLine.match(/^#?(\d{1,2})\s+(.+)$/);
+                        if (match2) {
+                            number = parseInt(match2[1]);
+                            name = match2[2].trim();
+                        }
+                    }
+
+                    // Pattern 3: name #number
+                    if (!number) {
+                        const match3 = trimmedLine.match(/^(.+)\s+#?(\d{1,2})$/);
+                        if (match3) {
+                            name = match3[1].trim();
+                            number = parseInt(match3[2]);
+                        }
+                    }
+
+                    // Pattern 4: Just look for any number in the line
+                    if (!number) {
+                        const match4 = trimmedLine.match(/(\d{1,2})/);
+                        if (match4) {
+                            number = parseInt(match4[1]);
+                            // Extract name by removing the number
+                            name = trimmedLine.replace(/\d+/g, '').trim();
+                        }
+                    }
+
+                    // Pattern 5: Name only (no number)
+                    if (!number && !name && trimmedLine.length > 1) {
+                        name = trimmedLine;
+                    }
+
+                    if (number !== null && name) {
+                        // Find matching player
+                        const player = players.find(p => p.number === number);
+                        if (player) {
+                            if (pasteMode === 'select') {
+                                // Check if name loosely matches (ignoring case and partial)
+                                const nameMatch = player.name.toLowerCase().includes(name.toLowerCase()) ||
+                                                 name.toLowerCase().includes(player.name.toLowerCase());
+
+                                if (nameMatch || !name || name.length < 3) {
+                                    // Select this player
+                                    setPlayers(prev => prev.map(p =>
+                                        p.id === player.id ? { ...p, selected: true } : p
+                                    ));
+                                    foundPlayers.push(player);
+                                } else {
+                                    notFound.push(`#${number} - ${name} (found ${player.name})`);
+                                }
+                            } else if (pasteMode === 'add') {
+                                // In add mode, if number exists, don't add
+                                notFound.push(`#${number} - ${name} ( jersey number already exists )`);
+                            }
+                        } else {
+                            if (pasteMode === 'add') {
+                                // Create new player
+                                const newPlayer = {
+                                    id: Date.now() + newPlayers.length,
+                                    name: name,
+                                    number: number,
+                                    position: position,
+                                    selected: false
+                                };
+                                newPlayers.push(newPlayer);
+                            } else {
+                                notFound.push(`#${number} - ${name}`);
+                            }
+                        }
+                    } else if (name && pasteMode === 'add') {
+                        // Name only, need to assign a number
+                        const maxNumber = Math.max(...players.map(p => p.number), 0);
+                        const newNumber = maxNumber + 1;
+
+                        const newPlayer = {
+                            id: Date.now() + newPlayers.length,
+                            name: name,
+                            number: newNumber,
+                            position: position,
+                            selected: false
+                        };
+                        newPlayers.push(newPlayer);
+                    } else if (trimmedLine && pasteMode === 'select') {
+                        // Try to match by name only in select mode
+                        const matchingPlayer = players.find(p =>
+                            p.name.toLowerCase() === trimmedLine.toLowerCase() ||
+                            p.name.toLowerCase().includes(trimmedLine.toLowerCase()) ||
+                            trimmedLine.toLowerCase().includes(p.name.toLowerCase())
+                        );
+
+                        if (matchingPlayer) {
+                            setPlayers(prev => prev.map(p =>
+                                p.id === matchingPlayer.id ? { ...p, selected: true } : p
+                            ));
+                            foundPlayers.push(matchingPlayer);
+                        } else {
+                            notFound.push(trimmedLine);
+                        }
+                    }
+                });
+
+                if (pasteMode === 'add' && newPlayers.length > 0) {
+                    setPlayers([...players, ...newPlayers]);
+                    setSuccessMessage(`Added ${newPlayers.length} new player(s) from pasted text`);
+                    setTimeout(() => setSuccessMessage(''), 3000);
+                } else if (pasteMode === 'select' && foundPlayers.length > 0) {
+                    setSuccessMessage(`Selected ${foundPlayers.length} player(s) from pasted text`);
+                    setTimeout(() => setSuccessMessage(''), 3000);
+                }
+
+                setParsedResults({
+                    found: foundPlayers,
+                    notFound: notFound,
+                    added: newPlayers
+                });
+
+                if (notFound.length > 0) {
+                    console.log('Not found:', notFound);
+                }
+            };
+
+            const selectedCount = players.filter(p => p.selected).length;
+
+            // Sort players by number for display
+            const sortedPlayers = [...players].sort((a, b) => a.number - b.number);
+
+            return (
+                <div className="container">
+                    <header>
+                        <h1>Hockey Equipment Manager</h1>
+                        <p>Select players for games and generate equipment lists</p>
+                    </header>
+
+                    {successMessage && (
+                        <div className="success-message">
+                            {successMessage}
+                        </div>
+                    )}
+
+                    <div className="main-content">
+                        <div className="panel">
+                            <h2>Player Roster</h2>
+
+                            <div className="button-group">
+                                <button onClick={selectAll}>Select All</button>
+                                <button onClick={clearSelection}>Clear Selection</button>
+                                <button onClick={clearAllData} className="danger" style={{ marginLeft: 'auto' }}>Clear All Data</button>
+                            </div>
+
+                            <div className="selected-count">
+                                Selected: {selectedCount} of {players.length} players
+                            </div>
+
+                            <div className="player-list">
+                                {sortedPlayers.map(player => (
+                                    <div
+                                        key={player.id}
+                                        className={`player-item ${player.selected ? 'selected' : ''}`}
+                                        onClick={() => togglePlayerSelection(player.id)}
+                                    >
+                                        <input
+                                            type="checkbox"
+                                            className="player-checkbox"
+                                            checked={player.selected}
+                                            onChange={() => togglePlayerSelection(player.id)}
+                                        />
+                                        <span className="player-number">#{player.number}</span>
+                                        <span className="player-name">{player.name}</span>
+                                        <span className="player-position">{player.position}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div className="panel">
+                            <h2>Controls</h2>
+
+                            <div className="button-group">
+                                <button onClick={() => setShowAddModal(true)}>Add Player</button>
+                                <button onClick={openEditModal}>Edit Player</button>
+                                <button onClick={handleDeletePlayer} className="danger">Remove Player(s)</button>
+                            </div>
+
+                            <div className="button-group">
+                                <button onClick={generateEquipmentList} className="primary">
+                                    Generate Equipment List
+                                </button>
+                            </div>
+
+                            <h2 style={{ marginTop: '30px' }}>Equipment List</h2>
+                            <div className="equipment-list">
+                                {equipmentList || 'Select players and click "Generate Equipment List" to see the required equipment here...'}
+                            </div>
+
+                            <div className="paste-section">
+                                <h2>Paste Player List</h2>
+                                <p style={{ fontSize: '14px', color: '#7f8c8d', marginBottom: '10px' }}>
+                                    Paste a list of player names or numbers (one per line) to quickly select or add them
+                                </p>
+
+                                <div style={{ marginBottom: '15px' }}>
+                                    <label style={{ fontWeight: 'normal', marginRight: '20px' }}>
+                                        <input
+                                            type="radio"
+                                            value="select"
+                                            checked={pasteMode === 'select'}
+                                            onChange={e => setPasteMode(e.target.value)}
+                                            style={{ marginRight: '5px' }}
+                                        />
+                                        Select Existing Players
+                                    </label>
+                                    <label style={{ fontWeight: 'normal' }}>
+                                        <input
+                                            type="radio"
+                                            value="add"
+                                            checked={pasteMode === 'add'}
+                                            onChange={e => setPasteMode(e.target.value)}
+                                            style={{ marginRight: '5px' }}
+                                        />
+                                        Add New Players
+                                    </label>
+                                </div>
+
+                                <textarea
+                                    className="paste-textarea"
+                                    value={pasteText}
+                                    onChange={e => setPasteText(e.target.value)}
+                                    placeholder="Example formats:
+#7 John Anderson Forward
+Mike Smith #11
+Tom Wilson
+19
+Alex Johnson - Defense"
+                                />
+
+                                <button onClick={parseAndSelectPlayers} className="primary" style={{ marginTop: '10px' }}>
+                                    {pasteMode === 'select' ? 'Parse and Select Players' : 'Parse and Add Players'}
+                                </button>
+
+                                {parsedResults.found && parsedResults.found.length > 0 && (
+                                    <div className="parsed-info">
+                                        <strong className="match-found">
+                                            {pasteMode === 'select' ? 'Found and selected' : 'Found'} {parsedResults.found.length} player(s):
+                                        </strong>
+                                        {parsedResults.found.map(p => (
+                                            <div key={p.id} className="match-found">
+                                                #{p.number} - {p.name}
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+
+                                {parsedResults.added && parsedResults.added.length > 0 && (
+                                    <div className="parsed-info">
+                                        <strong className="match-found">
+                                            Added {parsedResults.added.length} new player(s):
+                                        </strong>
+                                        {parsedResults.added.map(p => (
+                                            <div key={p.id} className="match-found">
+                                                #{p.number} - {p.name} ({p.position})
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+
+                                {parsedResults.notFound && parsedResults.notFound.length > 0 && (
+                                    <div className="parsed-info">
+                                        <strong className="no-match">
+                                            Could not {pasteMode === 'add' ? 'add' : 'match'} {parsedResults.notFound.length} entry(ies):
+                                        </strong>
+                                        {parsedResults.notFound.map((entry, idx) => (
+                                            <div key={idx} className="no-match">
+                                                {entry}
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Add Player Modal */}
+                    {showAddModal && (
+                        <div className="modal show" onClick={() => setShowAddModal(false)}>
+                            <div className="modal-content" onClick={e => e.stopPropagation()}>
+                                <div className="modal-header">
+                                    <h3>Add Player</h3>
+                                </div>
+
+                                <div className="form-group">
+                                    <label>Player Name:</label>
+                                    <input
+                                        type="text"
+                                        value={formData.name}
+                                        onChange={e => setFormData({...formData, name: e.target.value})}
+                                        placeholder="Enter player name"
+                                    />
+                                    {errors.name && <div className="error">{errors.name}</div>}
+                                </div>
+
+                                <div className="form-group">
+                                    <label>Jersey Number:</label>
+                                    <input
+                                        type="number"
+                                        value={formData.number}
+                                        onChange={e => setFormData({...formData, number: e.target.value})}
+                                        placeholder="Enter jersey number"
+                                        min="0"
+                                        max="99"
+                                    />
+                                    {errors.number && <div className="error">{errors.number}</div>}
+                                </div>
+
+                                <div className="form-group">
+                                    <label>Position:</label>
+                                    <select
+                                        value={formData.position}
+                                        onChange={e => setFormData({...formData, position: e.target.value})}
+                                        style={{
+                                            width: '100%',
+                                            padding: '10px',
+                                            border: '1px solid #ddd',
+                                            borderRadius: '4px',
+                                            fontSize: '16px',
+                                            backgroundColor: 'white'
+                                        }}
+                                    >
+                                        <option value="Forward">Forward</option>
+                                        <option value="Defense">Back/Defense</option>
+                                        <option value="Goalie">Goalkeeper (Målvakt)</option>
+                                    </select>
+                                </div>
+
+                                <div className="modal-footer">
+                                    <button onClick={handleAddPlayer} className="primary">Add</button>
+                                    <button onClick={() => {
+                                        setShowAddModal(false);
+                                        setFormData({ name: '', number: '', position: 'Forward' });
+                                        setErrors({});
+                                    }}>Cancel</button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Edit Player Modal */}
+                    {showEditModal && (
+                        <div className="modal show" onClick={() => setShowEditModal(false)}>
+                            <div className="modal-content" onClick={e => e.stopPropagation()}>
+                                <div className="modal-header">
+                                    <h3>Edit Player</h3>
+                                </div>
+
+                                <div className="form-group">
+                                    <label>Player Name:</label>
+                                    <input
+                                        type="text"
+                                        value={formData.name}
+                                        onChange={e => setFormData({...formData, name: e.target.value})}
+                                        placeholder="Enter player name"
+                                    />
+                                    {errors.name && <div className="error">{errors.name}</div>}
+                                </div>
+
+                                <div className="form-group">
+                                    <label>Jersey Number:</label>
+                                    <input
+                                        type="number"
+                                        value={formData.number}
+                                        onChange={e => setFormData({...formData, number: e.target.value})}
+                                        placeholder="Enter jersey number"
+                                        min="0"
+                                        max="99"
+                                    />
+                                    {errors.number && <div className="error">{errors.number}</div>}
+                                </div>
+
+                                <div className="form-group">
+                                    <label>Position:</label>
+                                    <select
+                                        value={formData.position}
+                                        onChange={e => setFormData({...formData, position: e.target.value})}
+                                        style={{
+                                            width: '100%',
+                                            padding: '10px',
+                                            border: '1px solid #ddd',
+                                            borderRadius: '4px',
+                                            fontSize: '16px',
+                                            backgroundColor: 'white'
+                                        }}
+                                    >
+                                        <option value="Forward">Forward</option>
+                                        <option value="Defense">Back/Defense</option>
+                                        <option value="Goalie">Goalkeeper (Målvakt)</option>
+                                    </select>
+                                </div>
+
+                                <div className="modal-footer">
+                                    <button onClick={handleEditPlayer} className="primary">Save</button>
+                                    <button onClick={() => {
+                                        setShowEditModal(false);
+                                        setFormData({ name: '', number: '', position: 'Forward' });
+                                        setEditingPlayer(null);
+                                        setErrors({});
+                                    }}>Cancel</button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        // Render the app
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<HockeyEquipmentManager />);
+    </script>
+</body>
+</html>
