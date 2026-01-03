@@ -509,10 +509,7 @@
 
                 const sortedPlayers = selectedPlayers.sort((a, b) => a.number - b.number);
 
-                let list = 'EQUIPMENT LIST FOR GAME\n';
-                list += '='.repeat(40) + '\n\n';
-
-                list += 'EQUIPMENT NEEDED:\n';
+                let list = 'EQUIPMENT NEEDED:\n';
                 list += '-'.repeat(20) + '\n';
                 sortedPlayers.forEach(p => {
                     list += `#${p.number.toString().padStart(2)} - ${p.name}\n`;
