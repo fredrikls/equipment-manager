@@ -558,6 +558,10 @@
 
                                 const data = JSON.parse(content);
                                 if (Array.isArray(data)) {
+                                    // Clear localStorage when loading new file
+                                    localStorage.removeItem('hockeyPlayers');
+                                    console.log('Cleared localStorage before loading new file');
+
                                     const processedPlayers = data.map(p => ({
                                         ...p,
                                         id: generateUniqueId(),
