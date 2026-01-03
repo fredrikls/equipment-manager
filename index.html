@@ -25,10 +25,9 @@
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
             background-color: #f5f5f5;
-            -webkit-tap-highlight-color: transparent; /* Remove tap highlight on mobile */
+            -webkit-tap-highlight-color: transparent;
         }
 
-        /* Prevent overscroll on mobile */
         html, body {
             overscroll-behavior: contain;
             height: 100%;
@@ -89,20 +88,6 @@
             text-decoration: underline;
         }
 
-        .mobile-instructions {
-            background-color: rgba(255,255,255,0.1);
-            padding: 10px;
-            border-radius: 4px;
-            margin-top: 10px;
-            font-size: 14px;
-            line-height: 1.4;
-        }
-
-        .mobile-instructions a {
-            color: #3498db;
-            text-decoration: underline;
-        }
-
         .main-content {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -139,11 +124,11 @@
         .player-item {
             display: flex;
             align-items: center;
-            padding: 15px; /* Increased touch target */
+            padding: 15px;
             border-bottom: 1px solid #eee;
             cursor: pointer;
             transition: background-color 0.2s;
-            min-height: 60px; /* Larger touch area */
+            min-height: 60px;
         }
 
         @media (max-width: 768px) {
@@ -163,7 +148,7 @@
 
             .player-position {
                 font-size: 14px;
-                display: none; /* Hide position on mobile for space */
+                display: none;
             }
         }
 
@@ -177,7 +162,7 @@
 
         .player-checkbox {
             margin-right: 15px;
-            width: 24px; /* Larger checkbox */
+            width: 24px;
             height: 24px;
             cursor: pointer;
             min-width: 24px;
@@ -219,14 +204,6 @@
             font-size: 16px;
         }
 
-        @media (max-width: 768px) {
-            input[type="text"],
-            input[type="number"] {
-                font-size: 16px; /* Prevent zoom on iOS */
-                padding: 12px;
-            }
-        }
-
         input[type="text"]:focus,
         input[type="number"]:focus {
             outline: none;
@@ -237,14 +214,14 @@
         button {
             background-color: #3498db;
             color: white;
-            padding: 12px 24px; /* Larger touch targets */
+            padding: 12px 24px;
             border: none;
             border-radius: 4px;
             cursor: pointer;
             font-size: 16px;
             margin: 5px;
             transition: background-color 0.2s;
-            min-height: 48px; /* iOS touch target minimum */
+            min-height: 48px;
         }
 
         button:hover {
@@ -279,19 +256,6 @@
             margin-bottom: 20px;
         }
 
-        @media (max-width: 768px) {
-            .button-group {
-                gap: 8px;
-            }
-
-            .button-group button {
-                flex: 1;
-                min-width: 120px;
-                font-size: 14px;
-                padding: 10px 16px;
-            }
-        }
-
         .selected-count {
             background-color: #3498db;
             color: white;
@@ -310,14 +274,6 @@
             font-family: 'Courier New', monospace;
             max-height: 400px;
             overflow-y: auto;
-        }
-
-        @media (max-width: 768px) {
-            .equipment-list {
-                font-size: 14px;
-                padding: 12px;
-                max-height: 300px;
-            }
         }
 
         .modal {
@@ -344,19 +300,6 @@
             max-width: 400px;
             width: 90%;
             box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-        }
-
-        @media (max-width: 768px) {
-            .modal-content {
-                padding: 20px;
-                width: 95%;
-                max-width: none;
-                margin: 10px;
-            }
-
-            .modal-header h3 {
-                font-size: 18px;
-            }
         }
 
         .modal-header {
@@ -406,13 +349,6 @@
             resize: vertical;
         }
 
-        @media (max-width: 768px) {
-            .paste-textarea {
-                font-size: 16px; /* Prevent zoom on iOS */
-                min-height: 150px;
-            }
-        }
-
         .paste-textarea:focus {
             outline: none;
             border-color: #3498db;
@@ -444,145 +380,122 @@
 
         function HockeyEquipmentManager() {
             const [players, setPlayers] = useState([]);
-            const [showAddModal, setShowAddModal] = useState(false);
-            const [showEditModal, setShowEditModal] = useState(false);
-            const [editingPlayer, setEditingPlayer] = useState(null);
-            const [formData, setFormData] = useState({
-                name: '',
-                number: '',
-                position: 'Forward'
-            });
             const [errors, setErrors] = useState({});
             const [successMessage, setSuccessMessage] = useState('');
             const [equipmentList, setEquipmentList] = useState('');
             const [pasteText, setPasteText] = useState('');
-            const [parsedResults, setParsedResults] = useState([]);
-            const [pasteMode, setPasteMode] = useState('select'); // 'select' or 'add'
+            const [parsedResults, setParsedResults] = useState({
+                found: [],
+                notFound: [],
+                added: []
+            });
+            const pasteMode = 'select'; // Always select mode since add is removed
+            const [sortBy, setSortBy] = useState('number'); // 'number' or 'name'
+            const [sortOrder, setSortOrder] = useState('asc'); // 'asc' or 'desc'
 
-            // Load default players on mount
+            // Generate unique IDs
+            const generateUniqueId = () => {
+                return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+            };
+
+            // Load from localStorage first, then try file
             useEffect(() => {
+                console.log('Loading player data...');
+
+                // Try localStorage first
                 const savedPlayers = localStorage.getItem('hockeyPlayers');
                 if (savedPlayers) {
-                    setPlayers(JSON.parse(savedPlayers));
-                } else {
-                    // Start with empty roster
-                    setPlayers([]);
+                    try {
+                        const data = JSON.parse(savedPlayers);
+                        if (Array.isArray(data)) {
+                            // Check for duplicate IDs and regenerate them if needed
+                            const ids = data.map(p => p.id);
+                            const uniqueIds = [...new Set(ids)];
+
+                            if (ids.length !== uniqueIds.length) {
+                                // We have duplicate IDs, regenerate them
+                                console.log('Found duplicate IDs, regenerating...');
+                                const processedPlayers = data.map(p => ({
+                                    ...p,
+                                    id: generateUniqueId(),
+                                }));
+                                setPlayers(processedPlayers);
+                                console.log('Regenerated IDs for', processedPlayers.length, 'players');
+                            } else {
+                                setPlayers(data);
+                            }
+                            setSuccessMessage('Loaded players from previous session');
+                            setTimeout(() => setSuccessMessage(''), 3000);
+                            return;
+                        }
+                    } catch (error) {
+                        console.error('Failed to load from localStorage:', error);
+                    }
                 }
+
+                // If no localStorage, load from file
+                loadFromFile();
             }, []);
 
-            // Save players to localStorage whenever they change
+            // Save players to localStorage whenever they change (with debounce)
             useEffect(() => {
-                localStorage.setItem('hockeyPlayers', JSON.stringify(players));
+                if (players.length > 0) {
+                    const timeoutId = setTimeout(() => {
+                        localStorage.setItem('hockeyPlayers', JSON.stringify(players));
+                        console.log('Saved', players.length, 'players to localStorage');
+                    }, 500);
+                    return () => clearTimeout(timeoutId);
+                }
             }, [players]);
 
-            const validateForm = () => {
-                const newErrors = {};
+            // Default data to use if no localStorage exists
+            const loadFromFile = () => {
+                console.log('Loading default player data...');
+                setSuccessMessage('Loading default player data...');
 
-                if (!formData.name.trim()) {
-                    newErrors.name = 'Player name is required';
-                }
+                const defaultPlayers = `[{"name": "Test Player 1", "number": 10, "position": "Forward"}, {"name": "Test Player 2", "number": 20, "position": "Defense"}, {"name": "Test Player 3", "number": 30, "position": "Goalie"}]`;
 
-                if (!formData.number || isNaN(formData.number)) {
-                    newErrors.number = 'Valid jersey number is required';
-                } else {
-                    const num = parseInt(formData.number);
-                    if (num < 0 || num > 99) {
-                        newErrors.number = 'Jersey number must be between 0 and 99';
+                try {
+                    const data = JSON.parse(defaultPlayers);
+                    if (Array.isArray(data) && data.length > 0) {
+                        const processedPlayers = data.map(p => ({
+                            ...p,
+                            id: generateUniqueId(),
+                            selected: false
+                        }));
+                        setPlayers([]);
+                        setTimeout(() => {
+                            setPlayers(processedPlayers);
+                            setSuccessMessage(`Loaded ${processedPlayers.length} players`);
+                            setTimeout(() => setSuccessMessage(''), 3000);
+                        }, 100);
+                    } else {
+                        throw new Error('Invalid player data format');
                     }
-
-                    // Check for duplicate numbers (excluding current player if editing)
-                    const duplicate = players.find(p =>
-                        p.number === num && (!editingPlayer || p.id !== editingPlayer.id)
-                    );
-                    if (duplicate) {
-                        newErrors.number = 'Player with this number already exists';
-                    }
-                }
-
-                setErrors(newErrors);
-                return Object.keys(newErrors).length === 0;
-            };
-
-            const handleAddPlayer = () => {
-                if (validateForm()) {
-                    const newPlayer = {
-                        id: Date.now(),
-                        name: formData.name.trim(),
-                        number: parseInt(formData.number),
-                        position: formData.position,
-                        selected: false
-                    };
-
-                    setPlayers([...players, newPlayer]);
-                    setFormData({ name: '', number: '', position: 'Forward' });
-                    setErrors({});
-                    setShowAddModal(false);
-                    setSuccessMessage('Player added successfully!');
+                } catch (error) {
+                    console.error('Failed to load default players:', error.message);
+                    setPlayers([]);
+                    setSuccessMessage('Failed to load player data');
                     setTimeout(() => setSuccessMessage(''), 3000);
                 }
             };
 
-            const handleEditPlayer = () => {
-                if (validateForm() && editingPlayer) {
-                    setPlayers(players.map(p =>
-                        p.id === editingPlayer.id
-                            ? {
-                                ...p,
-                                name: formData.name.trim(),
-                                number: parseInt(formData.number),
-                                position: formData.position,
-                                selected: false  // Deselect player after edit
-                            }
-                            : p
-                    ));
-                    setFormData({ name: '', number: '', position: 'Forward' });
-                    setErrors({});
-                    setShowEditModal(false);
-                    setEditingPlayer(null);
-                    setSuccessMessage('Player updated successfully!');
-                    setTimeout(() => setSuccessMessage(''), 3000);
-                }
-            };
-
-            const handleDeletePlayer = () => {
-                const selectedPlayers = players.filter(p => p.selected);
-
-                if (selectedPlayers.length === 0) {
-                    alert('Please select players to delete');
-                    return;
-                }
-
-                if (confirm(`Delete ${selectedPlayers.length} player(s)?`)) {
-                    setPlayers(players.filter(p => !p.selected));
-                    setSuccessMessage('Players deleted successfully!');
-                    setTimeout(() => setSuccessMessage(''), 3000);
-                }
-            };
-
+            
+            
             const togglePlayerSelection = (playerId) => {
-                setPlayers(players.map(p =>
-                    p.id === playerId ? { ...p, selected: !p.selected } : p
-                ));
-            };
-
-            const openEditModal = () => {
-                const selectedPlayers = players.filter(p => p.selected);
-
-                if (selectedPlayers.length !== 1) {
-                    alert('Please select exactly one player to edit');
-                    return;
-                }
-
-                const player = selectedPlayers[0];
-                setEditingPlayer(player);
-                setFormData({
-                    name: player.name,
-                    number: player.toString(),
-                    position: player.position
+                console.log('Toggling player:', playerId);
+                // Use functional update with prevPlayers to avoid stale closure
+                setPlayers(prevPlayers => {
+                    console.log('Previous players:', prevPlayers.length);
+                    const newPlayers = prevPlayers.map(p =>
+                        p.id === playerId ? { ...p, selected: !p.selected } : p
+                    );
+                    console.log('Toggled player selection for', playerId, 'new selected:', newPlayers.find(p => p.id === playerId)?.selected);
+                    return newPlayers;
                 });
-                setShowEditModal(true);
             };
 
+            
             const generateEquipmentList = () => {
                 const selectedPlayers = players.filter(p => p.selected);
 
@@ -616,44 +529,95 @@
                 setPlayers(players.map(p => ({ ...p, selected: false })));
             };
 
-            const clearAllData = () => {
-                if (confirm('Are you sure you want to clear all players? This cannot be undone.')) {
-                    setPlayers([]);
-                    setSuccessMessage('All player data has been cleared!');
-                    setTimeout(() => setSuccessMessage(''), 3000);
-                }
-            };
-
+            
             const selectAll = () => {
                 setPlayers(players.map(p => ({ ...p, selected: true })));
             };
 
+            
+            
+            const reloadFromFile = () => {
+                // Open file picker to let user select any JSON file
+                console.log('Opening file picker...');
+                const fileInput = document.createElement('input');
+                fileInput.type = 'file';
+                fileInput.accept = '.json,application/json';
+                fileInput.style.display = 'none';
+
+                fileInput.onchange = (e) => {
+                    const file = e.target.files[0];
+                    if (file) {
+                        console.log('File selected:', file.name);
+                        setSuccessMessage(`Loading ${file.name}...`);
+
+                        const reader = new FileReader();
+                        reader.onload = (event) => {
+                            try {
+                                const content = event.target.result;
+                                console.log('File loaded, parsing content...');
+
+                                const data = JSON.parse(content);
+                                if (Array.isArray(data)) {
+                                    const processedPlayers = data.map(p => ({
+                                        ...p,
+                                        id: generateUniqueId(),
+                                        selected: false
+                                    }));
+                                    setPlayers([]);
+                                    setTimeout(() => {
+                                        setPlayers(processedPlayers);
+                                        setSuccessMessage(`Loaded ${processedPlayers.length} players from ${file.name}`);
+                                        setTimeout(() => setSuccessMessage(''), 3000);
+                                    }, 100);
+                                } else {
+                                    throw new Error('File does not contain a player array');
+                                }
+                            } catch (error) {
+                                console.error('Failed to parse file:', error);
+                                alert(`Error reading ${file.name}: ${error.message}`);
+                                setSuccessMessage('Error loading file');
+                                setTimeout(() => setSuccessMessage(''), 3000);
+                            }
+                        };
+
+                        reader.onerror = () => {
+                            console.error('File reading failed');
+                            alert('Failed to read file');
+                            setSuccessMessage('Error reading file');
+                            setTimeout(() => setSuccessMessage(''), 3000);
+                        };
+
+                        reader.readAsText(file);
+                    } else {
+                        console.log('No file selected');
+                    }
+                };
+
+                fileInput.click();
+            };
+
+            
+            
             const parseAndSelectPlayers = () => {
                 const lines = pasteText.split('\n');
                 const foundPlayers = [];
                 const notFound = [];
-                const newPlayers = [];
 
-                if (pasteMode === 'select') {
-                    // Clear current selection first
-                    setPlayers(players.map(p => ({ ...p, selected: false })));
-                }
+                // Clear all selections first
+                setPlayers(players.map(p => ({ ...p, selected: false })));
 
                 lines.forEach(line => {
                     const trimmedLine = line.trim();
                     if (!trimmedLine) return;
 
-                    // Try different patterns to extract player info
                     let number = null;
                     let name = null;
-                    let position = 'Forward'; // default position
 
                     // Pattern 1: #number name position
                     const match1 = trimmedLine.match(/^#?(\d{1,2})\s+(.+?)\s+(.+)$/);
                     if (match1) {
                         number = parseInt(match1[1]);
                         name = match1[2].trim();
-                        position = match1[3].trim();
                     }
 
                     // Pattern 2: #number name
@@ -679,7 +643,6 @@
                         const match4 = trimmedLine.match(/(\d{1,2})/);
                         if (match4) {
                             number = parseInt(match4[1]);
-                            // Extract name by removing the number
                             name = trimmedLine.replace(/\d+/g, '').trim();
                         }
                     }
@@ -690,57 +653,24 @@
                     }
 
                     if (number !== null && name) {
-                        // Find matching player
                         const player = players.find(p => p.number === number);
                         if (player) {
-                            if (pasteMode === 'select') {
-                                // Check if name loosely matches (ignoring case and partial)
-                                const nameMatch = player.name.toLowerCase().includes(name.toLowerCase()) ||
-                                                 name.toLowerCase().includes(player.name.toLowerCase());
+                            const nameMatch = player.name.toLowerCase().includes(name.toLowerCase()) ||
+                                             name.toLowerCase().includes(player.name.toLowerCase());
 
-                                if (nameMatch || !name || name.length < 3) {
-                                    // Select this player
-                                    setPlayers(prev => prev.map(p =>
-                                        p.id === player.id ? { ...p, selected: true } : p
-                                    ));
-                                    foundPlayers.push(player);
-                                } else {
-                                    notFound.push(`#${number} - ${name} (found ${player.name})`);
-                                }
-                            } else if (pasteMode === 'add') {
-                                // In add mode, if number exists, don't add
-                                notFound.push(`#${number} - ${name} ( jersey number already exists )`);
+                            if (nameMatch || !name || name.length < 3) {
+                                setPlayers(prev => prev.map(p =>
+                                    p.id === player.id ? { ...p, selected: true } : p
+                                ));
+                                foundPlayers.push(player);
+                            } else {
+                                notFound.push(`#${number} - ${name} (found ${player.name})`);
                             }
                         } else {
-                            if (pasteMode === 'add') {
-                                // Create new player
-                                const newPlayer = {
-                                    id: Date.now() + newPlayers.length,
-                                    name: name,
-                                    number: number,
-                                    position: position,
-                                    selected: false
-                                };
-                                newPlayers.push(newPlayer);
-                            } else {
-                                notFound.push(`#${number} - ${name}`);
-                            }
+                            notFound.push(`#${number} - ${name}`);
                         }
-                    } else if (name && pasteMode === 'add') {
-                        // Name only, need to assign a number
-                        const maxNumber = Math.max(...players.map(p => p.number), 0);
-                        const newNumber = maxNumber + 1;
-
-                        const newPlayer = {
-                            id: Date.now() + newPlayers.length,
-                            name: name,
-                            number: newNumber,
-                            position: position,
-                            selected: false
-                        };
-                        newPlayers.push(newPlayer);
-                    } else if (trimmedLine && pasteMode === 'select') {
-                        // Try to match by name only in select mode
+                    } else if (trimmedLine) {
+                        // Try to match by name only
                         const matchingPlayer = players.find(p =>
                             p.name.toLowerCase() === trimmedLine.toLowerCase() ||
                             p.name.toLowerCase().includes(trimmedLine.toLowerCase()) ||
@@ -758,11 +688,7 @@
                     }
                 });
 
-                if (pasteMode === 'add' && newPlayers.length > 0) {
-                    setPlayers([...players, ...newPlayers]);
-                    setSuccessMessage(`Added ${newPlayers.length} new player(s) from pasted text`);
-                    setTimeout(() => setSuccessMessage(''), 3000);
-                } else if (pasteMode === 'select' && foundPlayers.length > 0) {
+                if (foundPlayers.length > 0) {
                     setSuccessMessage(`Selected ${foundPlayers.length} player(s) from pasted text`);
                     setTimeout(() => setSuccessMessage(''), 3000);
                 }
@@ -770,7 +696,7 @@
                 setParsedResults({
                     found: foundPlayers,
                     notFound: notFound,
-                    added: newPlayers
+                    added: [] // No adding players anymore
                 });
 
                 if (notFound.length > 0) {
@@ -780,8 +706,25 @@
 
             const selectedCount = players.filter(p => p.selected).length;
 
-            // Sort players by number for display
-            const sortedPlayers = [...players].sort((a, b) => a.number - b.number);
+            // Sort players based on current selection
+            const sortedPlayers = [...players].sort((a, b) => {
+                if (sortBy === 'selected') {
+                    const selectedA = a.selected ? 0 : 1;
+                    const selectedB = b.selected ? 0 : 1;
+                    return sortOrder === 'asc' ? selectedA - selectedB : selectedB - selectedA;
+                } else if (sortBy === 'number') {
+                    return sortOrder === 'asc' ? a.number - b.number : b.number - a.number;
+                } else if (sortBy === 'name') {
+                    const nameA = a.name.toLowerCase();
+                    const nameB = b.name.toLowerCase();
+                    if (sortOrder === 'asc') {
+                        return nameA.localeCompare(nameB);
+                    } else {
+                        return nameB.localeCompare(nameA);
+                    }
+                }
+                return 0;
+            });
 
             return (
                 <div className="container">
@@ -803,11 +746,43 @@
                             <div className="button-group">
                                 <button onClick={selectAll}>Select All</button>
                                 <button onClick={clearSelection}>Clear Selection</button>
-                                <button onClick={clearAllData} className="danger" style={{ marginLeft: 'auto' }}>Clear All Data</button>
                             </div>
 
                             <div className="selected-count">
                                 Selected: {selectedCount} of {players.length} players
+                            </div>
+
+                            <div style={{ marginBottom: '15px' }}>
+                                <label style={{ marginRight: '10px', fontSize: '14px' }}>Sort by:</label>
+                                <select
+                                    value={sortBy}
+                                    onChange={e => setSortBy(e.target.value)}
+                                    style={{
+                                        padding: '5px',
+                                        borderRadius: '4px',
+                                        border: '1px solid #ddd',
+                                        marginRight: '10px',
+                                        fontSize: '14px'
+                                    }}
+                                >
+                                    <option value="selected">Selected Status</option>
+                                    <option value="number">Jersey Number</option>
+                                    <option value="name">Player Name</option>
+                                </select>
+
+                                <select
+                                    value={sortOrder}
+                                    onChange={e => setSortOrder(e.target.value)}
+                                    style={{
+                                        padding: '5px',
+                                        borderRadius: '4px',
+                                        border: '1px solid #ddd',
+                                        fontSize: '14px'
+                                    }}
+                                >
+                                    <option value="asc">Ascending</option>
+                                    <option value="desc">Descending</option>
+                                </select>
                             </div>
 
                             <div className="player-list">
@@ -815,13 +790,15 @@
                                     <div
                                         key={player.id}
                                         className={`player-item ${player.selected ? 'selected' : ''}`}
-                                        onClick={() => togglePlayerSelection(player.id)}
                                     >
                                         <input
                                             type="checkbox"
                                             className="player-checkbox"
                                             checked={player.selected}
-                                            onChange={() => togglePlayerSelection(player.id)}
+                                            onChange={(e) => {
+                                                e.stopPropagation();
+                                                togglePlayerSelection(player.id);
+                                            }}
                                         />
                                         <span className="player-number">#{player.number}</span>
                                         <span className="player-name">{player.name}</span>
@@ -834,15 +811,16 @@
                         <div className="panel">
                             <h2>Controls</h2>
 
-                            <div className="button-group">
-                                <button onClick={() => setShowAddModal(true)}>Add Player</button>
-                                <button onClick={openEditModal}>Edit Player</button>
-                                <button onClick={handleDeletePlayer} className="danger">Remove Player(s)</button>
-                            </div>
-
+                            
                             <div className="button-group">
                                 <button onClick={generateEquipmentList} className="primary">
                                     Generate Equipment List
+                                </button>
+                            </div>
+
+                            <div className="button-group">
+                                <button onClick={reloadFromFile} className="primary">
+                                    Load Players
                                 </button>
                             </div>
 
@@ -854,32 +832,10 @@
                             <div className="paste-section">
                                 <h2>Paste Player List</h2>
                                 <p style={{ fontSize: '14px', color: '#7f8c8d', marginBottom: '10px' }}>
-                                    Paste a list of player names or numbers (one per line) to quickly select or add them
+                                    Paste a list of player names or numbers to quickly select or add them
                                 </p>
 
-                                <div style={{ marginBottom: '15px' }}>
-                                    <label style={{ fontWeight: 'normal', marginRight: '20px' }}>
-                                        <input
-                                            type="radio"
-                                            value="select"
-                                            checked={pasteMode === 'select'}
-                                            onChange={e => setPasteMode(e.target.value)}
-                                            style={{ marginRight: '5px' }}
-                                        />
-                                        Select Existing Players
-                                    </label>
-                                    <label style={{ fontWeight: 'normal' }}>
-                                        <input
-                                            type="radio"
-                                            value="add"
-                                            checked={pasteMode === 'add'}
-                                            onChange={e => setPasteMode(e.target.value)}
-                                            style={{ marginRight: '5px' }}
-                                        />
-                                        Add New Players
-                                    </label>
-                                </div>
-
+                                
                                 <textarea
                                     className="paste-textarea"
                                     value={pasteText}
@@ -909,23 +865,11 @@ Alex Johnson - Defense"
                                     </div>
                                 )}
 
-                                {parsedResults.added && parsedResults.added.length > 0 && (
-                                    <div className="parsed-info">
-                                        <strong className="match-found">
-                                            Added {parsedResults.added.length} new player(s):
-                                        </strong>
-                                        {parsedResults.added.map(p => (
-                                            <div key={p.id} className="match-found">
-                                                #{p.number} - {p.name} ({p.position})
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
-
+                                
                                 {parsedResults.notFound && parsedResults.notFound.length > 0 && (
                                     <div className="parsed-info">
                                         <strong className="no-match">
-                                            Could not {pasteMode === 'add' ? 'add' : 'match'} {parsedResults.notFound.length} entry(ies):
+                                            Could not find {parsedResults.notFound.length} player(s):
                                         </strong>
                                         {parsedResults.notFound.map((entry, idx) => (
                                             <div key={idx} className="no-match">
@@ -939,138 +883,10 @@ Alex Johnson - Defense"
                     </div>
 
                     {/* Add Player Modal */}
-                    {showAddModal && (
-                        <div className="modal show" onClick={() => setShowAddModal(false)}>
-                            <div className="modal-content" onClick={e => e.stopPropagation()}>
-                                <div className="modal-header">
-                                    <h3>Add Player</h3>
-                                </div>
-
-                                <div className="form-group">
-                                    <label>Player Name:</label>
-                                    <input
-                                        type="text"
-                                        value={formData.name}
-                                        onChange={e => setFormData({...formData, name: e.target.value})}
-                                        placeholder="Enter player name"
-                                    />
-                                    {errors.name && <div className="error">{errors.name}</div>}
-                                </div>
-
-                                <div className="form-group">
-                                    <label>Jersey Number:</label>
-                                    <input
-                                        type="number"
-                                        value={formData.number}
-                                        onChange={e => setFormData({...formData, number: e.target.value})}
-                                        placeholder="Enter jersey number"
-                                        min="0"
-                                        max="99"
-                                    />
-                                    {errors.number && <div className="error">{errors.number}</div>}
-                                </div>
-
-                                <div className="form-group">
-                                    <label>Position:</label>
-                                    <select
-                                        value={formData.position}
-                                        onChange={e => setFormData({...formData, position: e.target.value})}
-                                        style={{
-                                            width: '100%',
-                                            padding: '10px',
-                                            border: '1px solid #ddd',
-                                            borderRadius: '4px',
-                                            fontSize: '16px',
-                                            backgroundColor: 'white'
-                                        }}
-                                    >
-                                        <option value="Forward">Forward</option>
-                                        <option value="Defense">Back/Defense</option>
-                                        <option value="Goalie">Goalkeeper (Målvakt)</option>
-                                    </select>
-                                </div>
-
-                                <div className="modal-footer">
-                                    <button onClick={handleAddPlayer} className="primary">Add</button>
-                                    <button onClick={() => {
-                                        setShowAddModal(false);
-                                        setFormData({ name: '', number: '', position: 'Forward' });
-                                        setErrors({});
-                                    }}>Cancel</button>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Edit Player Modal */}
-                    {showEditModal && (
-                        <div className="modal show" onClick={() => setShowEditModal(false)}>
-                            <div className="modal-content" onClick={e => e.stopPropagation()}>
-                                <div className="modal-header">
-                                    <h3>Edit Player</h3>
-                                </div>
-
-                                <div className="form-group">
-                                    <label>Player Name:</label>
-                                    <input
-                                        type="text"
-                                        value={formData.name}
-                                        onChange={e => setFormData({...formData, name: e.target.value})}
-                                        placeholder="Enter player name"
-                                    />
-                                    {errors.name && <div className="error">{errors.name}</div>}
-                                </div>
-
-                                <div className="form-group">
-                                    <label>Jersey Number:</label>
-                                    <input
-                                        type="number"
-                                        value={formData.number}
-                                        onChange={e => setFormData({...formData, number: e.target.value})}
-                                        placeholder="Enter jersey number"
-                                        min="0"
-                                        max="99"
-                                    />
-                                    {errors.number && <div className="error">{errors.number}</div>}
-                                </div>
-
-                                <div className="form-group">
-                                    <label>Position:</label>
-                                    <select
-                                        value={formData.position}
-                                        onChange={e => setFormData({...formData, position: e.target.value})}
-                                        style={{
-                                            width: '100%',
-                                            padding: '10px',
-                                            border: '1px solid #ddd',
-                                            borderRadius: '4px',
-                                            fontSize: '16px',
-                                            backgroundColor: 'white'
-                                        }}
-                                    >
-                                        <option value="Forward">Forward</option>
-                                        <option value="Defense">Back/Defense</option>
-                                        <option value="Goalie">Goalkeeper (Målvakt)</option>
-                                    </select>
-                                </div>
-
-                                <div className="modal-footer">
-                                    <button onClick={handleEditPlayer} className="primary">Save</button>
-                                    <button onClick={() => {
-                                        setShowEditModal(false);
-                                        setFormData({ name: '', number: '', position: 'Forward' });
-                                        setEditingPlayer(null);
-                                        setErrors({});
-                                    }}>Cancel</button>
-                                </div>
-                            </div>
-                        </div>
-                    )}
                 </div>
             );
         }
 
-        // Render the app
         const root = ReactDOM.createRoot(document.getElementById('root'));
         root.render(<HockeyEquipmentManager />);
     </script>

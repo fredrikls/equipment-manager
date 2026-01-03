@@ -1,16 +1,16 @@
 # Hockey Equipment Manager
 
-A mobile-friendly web application for hockey equipment managers to select players for games and generate organized equipment lists.
+A mobile-friendly web application for hockey equipment managers to manage player rosters and generate organized equipment lists for games.
 
 ## Features
 
-- **Player Management**: Add, edit, and remove players from the roster
-- **Multi-Selection**: Select multiple players for upcoming games
-- **Smart Sorting**: Players are automatically sorted by jersey number
+- **Load Players**: Import player rosters from JSON files using the file picker
+- **Multi-Selection**: Select multiple players for upcoming games using checkboxes
+- **Smart Sorting**: Sort players by selected status, jersey number, or player name
 - **Equipment Lists**: Generate organized lists showing required jerseys and water bottles
 - **Mobile Optimized**: Works great on phones and tablets with touch-friendly interface
 - **Local Storage**: Rosters are automatically saved in your browser
-- **Quick Import**: Paste player lists to quickly select or add players
+- **Quick Selection**: Paste player lists to quickly select existing players
 
 ## How to Run
 
@@ -27,15 +27,37 @@ A mobile-friendly web application for hockey equipment managers to select player
 
 ## How to Use
 
-### Adding Players
-1. Click "Add Player" button
-2. Enter player name, jersey number, and position (optional)
-3. Click "Add" to save the player
+### Loading Players
+1. Click "Load Players" button
+2. Select a JSON file containing your player roster
+3. The app will automatically load and display the players
+
+### JSON File Format
+Your JSON file should contain an array of player objects with the following format:
+```json
+[
+  {
+    "name": "John Anderson",
+    "number": 7,
+    "position": "Forward"
+  },
+  {
+    "name": "Mike Smith",
+    "number": 11,
+    "position": "Defense"
+  }
+]
+```
 
 ### Selecting Players for a Game
-1. Click on players in the list to select them (multi-select enabled)
-2. Or double-click to toggle selection
-3. Selected players are highlighted
+1. Click the checkbox next to each player to select/deselect them
+2. Use the sort controls to organize players as needed
+3. Selected players are highlighted in blue
+
+### Sorting Players
+- **Selected Status**: Sort by selected/unselected (players at top/bottom)
+- **Jersey Number**: Sort by jersey number (ascending/descending)
+- **Player Name**: Sort alphabetically by name (A-Z/Z-A)
 
 ### Generating Equipment Lists
 1. Select the players playing in the upcoming game
@@ -47,7 +69,7 @@ A mobile-friendly web application for hockey equipment managers to select player
 
 ### Mobile Usage Tips
 - **Add to Home Screen**: On iOS, tap the share button and "Add to Home Screen" for app-like access
-- **Touch Gestures**: Tap players to select/deselect, use appropriate buttons for actions
+- **Touch Gestures**: Tap checkboxes to select/deselect players
 - **Responsive Design**: The interface adapts automatically to your screen size
 
 ### Managing Rosters
@@ -55,10 +77,10 @@ A mobile-friendly web application for hockey equipment managers to select player
 - **Persistent Storage**: Player data stays even after closing the browser
 - **No Manual Save Needed**: Changes are saved instantly as you make them
 
-### Quick Import (New Feature)
-- **Paste Player Lists**: Copy and paste player names/numbers to quickly add or select them
+### Quick Selection
+- **Paste Player Lists**: Copy and paste player names/numbers to quickly select them
 - **Smart Parsing**: Supports multiple formats like "#7 John Anderson Forward" or "Mike Smith #11"
-- **Bulk Operations**: Add multiple players at once or select existing players from pasted text
+- **Bulk Selection**: Select multiple existing players from pasted text
 
 ## Example Output
 
@@ -92,7 +114,7 @@ Water Bottles Needed: 4
 ## Mobile Optimization
 
 The app is specifically designed for mobile use with:
-- **Large Touch Targets**: Easy to tap buttons and player items
+- **Large Touch Targets**: Easy to tap buttons and checkboxes
 - **Responsive Layout**: Adapts to any screen size
 - **No Zoom Required**: Text is sized appropriately for mobile reading
 - **Mobile Gestures**: Native touch interactions
@@ -100,12 +122,11 @@ The app is specifically designed for mobile use with:
 
 ## Tips
 
-- Players are automatically sorted by jersey number for easy equipment management
+- Use the sort controls to organize players efficiently
 - Double-check player counts before heading to the game
 - Your roster is automatically saved - no need to manually save
-- The app prevents duplicate jersey numbers to avoid confusion
 - On mobile, use "Add to Home Screen" for quick access like a native app
-- Use the paste feature to quickly import player lists from emails or messages
+- Use the paste feature to quickly select players from emails or messages
 
 ## Browser Support
 
