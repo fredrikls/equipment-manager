@@ -743,6 +743,12 @@
                         <div className="panel">
                             <h2>Player Roster</h2>
 
+                            <div className="button-group" style={{ marginBottom: '15px' }}>
+                                <button onClick={reloadFromFile} className="primary">
+                                    Load Players
+                                </button>
+                            </div>
+
                             <div className="button-group">
                                 <button onClick={selectAll}>Select All</button>
                                 <button onClick={clearSelection}>Clear Selection</button>
@@ -806,25 +812,16 @@
                                     </div>
                                 ))}
                             </div>
-                        </div>
 
-                        <div className="panel">
-                            <h2>Controls</h2>
-
-                            
-                            <div className="button-group">
+                            <div className="button-group" style={{ marginTop: '25px', marginBottom: '15px' }}>
                                 <button onClick={generateEquipmentList} className="primary">
                                     Generate Equipment List
                                 </button>
                             </div>
+                        </div>
 
-                            <div className="button-group">
-                                <button onClick={reloadFromFile} className="primary">
-                                    Load Players
-                                </button>
-                            </div>
-
-                            <h2 style={{ marginTop: '30px' }}>Equipment List</h2>
+                        <div className="panel">
+                            <h2>Equipment List</h2>
                             <div className="equipment-list">
                                 {equipmentList || 'Select players and click "Generate Equipment List" to see the required equipment here...'}
                             </div>
